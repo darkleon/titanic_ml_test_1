@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Titanic Survival Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-group input:hover {
+            border-color: #bdc3c7;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff40;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transform: translateY(10px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .result.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .result.success {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            border: 2px solid #27ae60;
+        }
+
+        .result.danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: 2px solid #c0392b;
+        }
+
+        .result.error {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            border: 2px solid #e67e22;
+        }
+
+        .input-info {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 25px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚢 Titanic Predictor</h1>
+            <p>Predict passenger survival using machine learning</p>
+        </div>
+
+        <form id="predictionForm">
+            <div class="form-group">
+                <label for="pclass">Passenger Class</label>
+                <input type="number" id="pclass" name="pclass" min="1" max="3" value="3" required>
+                <div class="input-info">Enter 1 (First), 2 (Second), or 3 (Third) class</div>
+            </div>
+
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" id="age" name="age" min="0" max="100" step="0.1" value="22.0" required>
+                <div class="input-info">Age in years (e.g., 25.5)</div>
+            </div>
+
+            <div class="form-group">
+                <label for="fare">Fare</label>
+                <input type="number" id="fare" name="fare" min="0" step="0.01" value="7.25" required>
+                <div class="input-info">Ticket fare in currency units (e.g., 15.75)</div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                <span class="loading-spinner"></span>
+                <span class="button-text">Predict Survival</span>
+            </button>
+        </form>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('predictionForm');
+        const resultDiv = document.getElementById('result');
+        const submitBtn = document.querySelector('.submit-btn');
+        const buttonText = document.querySelector('.button-text');
+        const loadingSpinner = document.querySelector('.loading-spinner');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(form);
+            const data = {
+                Pclass: parseInt(formData.get('pclass')),
+                Age: parseFloat(formData.get('age')),
+                Fare: parseFloat(formData.get('fare'))
+            };
+
+            // Show loading state
+            submitBtn.disabled = true;
+            buttonText.textContent = 'Predicting...';
+            loadingSpinner.style.display = 'inline-block';
+            resultDiv.classList.remove('show');
+
+            try {
+                // Make API call
+                const response = await fetch('http://127.0.0.1:5001/predict_model', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                // Show result
+                displayResult(result.prediction, 'success');
+
+            } catch (error) {
+                console.error('Error:', error);
+                displayResult(`Error: ${error.message}`, 'error');
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                buttonText.textContent = 'Predict Survival';
+                loadingSpinner.style.display = 'none';
+            }
+        });
+
+        function displayResult(message, type) {
+            resultDiv.className = `result ${type}`;
+            
+            if (type === 'success') {
+                const icon = message === 'Survived' ? '✅' : '❌';
+                const emoji = message === 'Survived' ? '🎉' : '😢';
+                resultDiv.innerHTML = `
+                    <div style="font-size: 2rem; margin-bottom: 10px;">${icon}</div>
+                    <div>Prediction: <strong>${message}</strong> ${emoji}</div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div style="font-size: 1.5rem; margin-bottom: 10px;">⚠️</div>
+                    <div>${message}</div>
+                `;
+            }
+            
+            // Trigger animation
+            setTimeout(() => {
+                resultDiv.classList.add('show');
+            }, 100);
+        }
+
+        // Add some interactive effects
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.style.transform = 'translateY(-2px)';
+            });
+            
+            input.addEventListener('blur', () => {
+                input.parentElement.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html>
